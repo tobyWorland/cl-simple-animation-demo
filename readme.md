@@ -1,4 +1,5 @@
 # cl-simple-animation-demo
+![Screenshot](images/screenshot.png)
 ## About
 Generate points with random positions and velocities. Draw lines between points
 that are close together, where the further the points are, the more transparent the
