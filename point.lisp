@@ -28,29 +28,33 @@
 
 (defun distance-between-points (point-1 point-2)
   "Return the distance between the two points."
-  (let ((diff-x (- (point-x point-2) (point-x point-1)))
-	(diff-y (- (point-y point-2) (point-y point-1))))
-    (sqrt (+ (expt diff-x 2) (expt diff-y 2)))))
+  (if (and point-1 point-2)
+      (let ((diff-x (- (point-x point-2) (point-x point-1)))
+	    (diff-y (- (point-y point-2) (point-y point-1))))
+	(sqrt (+ (expt diff-x 2) (expt diff-y 2))))
+      0))
 
 (defun apply-velocity (point max-x max-y)
-  "Return a new point with the position of the old POINT with its VELOCITY applied."
+  "Return a new point with the position of the old POINT plus its VELOCITY, wrapping the position
+back to 0 if it exceeds MAX-X or MAX-Y."
   (make-point :x (mod (+ (point-x point) (point-velocity-x point)) max-x)
 	      :y (mod (+ (point-y point) (point-velocity-y point)) max-y)
 	      :velocity-x (point-velocity-x point)
 	      :velocity-y (point-velocity-y point)))
 
-(defun distance-mapping-threshold-1 (point other-points threshold)
-  (let (result)
-    (dolist (other-point other-points (cons point (nreverse result)))
-      (let ((distance (distance-between-points point other-point)))
-	(when (<= distance threshold)
-	  (push (cons other-point distance) result))))))
-
 (defun distance-mapping-threshold (points threshold)
-  ;; Half the list as I don't want duplicates
-  (let* ((boundary-index (floor (/ (length points) 2)))
-	 (first-points (subseq points 0 boundary-index))
-	 (other-points (subseq points boundary-index))
-	 result)
-    (dolist (first-point first-points (nreverse result))
-      (push (distance-mapping-threshold-1 first-point other-points threshold) result))))
+  "Return a list of POINTS and distances between those POINTS, only when the distance is less than
+or equal to THRESHOLD.
+
+Such as ((p1 (p2 . distance-from-p2-to-p1)
+             (p3 . distance-from-p3-to-p1)
+             ...)
+         (p2 (p3 . distance-from-p3-to-p2)
+             ...)
+         ...)"
+  ;; Avoid duplicates by only comparing the points that come after the current one
+  (loop for (current-point . next-points) on points
+	collect (cons current-point (loop for other-point in next-points
+					  for distance = (distance-between-points current-point other-point)
+					  when (<= distance threshold)
+					    collect (cons other-point distance)))))
