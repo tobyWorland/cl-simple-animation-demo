@@ -4,4 +4,4 @@
   (:export :run)
   (:import-from :sdl2 :set-render-draw-color :render-clear
    :make-rect :render-fill-rect :free-rect :set-window-title
-   :get-ticks :delay :render-present))
+   :get-ticks :delay :render-present :render-draw-line))

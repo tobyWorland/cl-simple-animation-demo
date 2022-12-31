@@ -17,37 +17,49 @@
   "The maximum distance a line can be drawn at")
 
 (defun update (renderer)
+  "Perform the update logic:
+ - Update point positions
+ - Draw points
+ - Draw lines between points"
+  ;; Clear screen
   (set-render-draw-color renderer 0 0 0 255)
   (render-clear renderer)
 
-  (render-lines-mapping renderer (distance-mapping-threshold *points* *max-line-distance*))
-
   (set-render-draw-color renderer 255 255 255 255)
 
+  ;; Calculate new point positions and render them
   (setf *points* (mapcar (lambda (point)
 			   (prog1 (apply-velocity point +width+ +height+)
 			     (render-point renderer point)))
 			 *points*))
 
+  ;; Render the lines between the points
+  (render-lines-mapping renderer (distance-mapping-threshold *points* *max-line-distance*)
+			*max-line-distance*)
+
   (render-present renderer))
 
 (defun render-point (renderer point)
+  "Draw a point as a 5x5 square"
   (let ((rect (make-rect (point-x point) (point-y point) 5 5)))
     (render-fill-rect renderer rect)
     (free-rect rect)))
 
 (defun render-point-line (renderer point-1 point-2 alpha)
+  "Draw a line between two points taking an ALPHA value to control transparency"
   (set-render-draw-color renderer 255 255 255 alpha)
   (let ((x1 (+ 3 (point-x point-1)))
 	(y1 (+ 3 (point-y point-1)))
 	(x2 (+ 3 (point-x point-2)))
 	(y2 (+ 3 (point-y point-2))))
-    (sdl2:render-draw-line renderer x1 y1 x2 y2)))
+    (render-draw-line renderer x1 y1 x2 y2)))
 
-(defun render-lines-mapping (renderer mapping)
+(defun render-lines-mapping (renderer mapping threshold)
+  "Draw lines based on the entries in a line mapping. See the DISTANCE-MAPPING-THRESHOLD function
+for more information."
   (dolist (map mapping)
     (dolist (x (cdr map))
-      (render-point-line renderer (car map) (car x) (round (* 255 (/ (- *max-line-distance* (cdr x)) *max-line-distance*)))))))
+      (render-point-line renderer (car map) (car x) (round (* 255 (/ (- threshold (cdr x)) threshold)))))))
 
 (defun %run ()
   (sdl2:with-init (:video)
