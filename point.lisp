@@ -39,22 +39,6 @@
 	      :velocity-x (point-velocity-x point)
 	      :velocity-y (point-velocity-y point)))
 
-(defun distance-mapping (points)
-  "Return a list in the form ((p1 (p2 . dist) (p3 . dist) ...)...)
-
-Where p1 is a point and p2 p3 are other points in relation to p1."
-  ;; Half the list as I don't want duplicates
-  (let* ((boundary-index (floor (/ (length points) 2)))
-	 (first-points (subseq points 0 boundary-index))
-	 (other-points (subseq points boundary-index))
-	 result)
-    (dolist (first-point first-points (nreverse result))
-      (push (cons first-point (mapcar (lambda (second-point)
-					(cons second-point
-					      (distance-between-points first-point second-point)))
-				      other-points))
-	    result))))
-
 (defun distance-mapping-threshold-1 (point other-points threshold)
   (let (result)
     (dolist (other-point other-points (cons point (nreverse result)))
