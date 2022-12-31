@@ -13,11 +13,14 @@
 (defparameter *target-fps* 60
   "Frames per second to aim for")
 
+(defparameter *max-line-distance* 200
+  "The maximum distance a line can be drawn at")
+
 (defun update (renderer)
   (set-render-draw-color renderer 0 0 0 255)
   (render-clear renderer)
 
-  (render-lines-mapping renderer (distance-mapping-threshold *points* 200))
+  (render-lines-mapping renderer (distance-mapping-threshold *points* *max-line-distance*))
 
   (set-render-draw-color renderer 255 255 255 255)
 
@@ -26,7 +29,7 @@
 			     (render-point renderer point)))
 			 *points*))
 
-  (sdl2:render-present renderer))
+  (render-present renderer))
 
 (defun render-point (renderer point)
   (let ((rect (make-rect (point-x point) (point-y point) 5 5)))
@@ -41,13 +44,10 @@
 	(y2 (+ 3 (point-y point-2))))
     (sdl2:render-draw-line renderer x1 y1 x2 y2)))
 
-(defun render-lines-mapping-1 (renderer map)
-  (dolist (x (cdr map))
-    (render-point-line renderer (car map) (car x) (round (* 255 (/ (- 200 (cdr x)) 200))))))
-
 (defun render-lines-mapping (renderer mapping)
   (dolist (map mapping)
-    (render-lines-mapping-1 renderer map)))
+    (dolist (x (cdr map))
+      (render-point-line renderer (car map) (car x) (round (* 255 (/ (- *max-line-distance* (cdr x)) *max-line-distance*)))))))
 
 (defun %run ()
   (sdl2:with-init (:video)
@@ -60,7 +60,7 @@
 	(sdl2:with-event-loop nil
 	  (:quit () t)
 	  (:idle ()
-		 (let ((start (sdl2:get-ticks)))
+		 (let ((start (get-ticks)))
 		   (update renderer)
 		   (let* ((elapsed (- (get-ticks) start))
 			  (delay-for (round (- (/ 1000 *target-fps*) elapsed))))
@@ -71,5 +71,6 @@
 		    (format nil "Animation FPS ~A"
 			    (round (/ 1000 (- (get-ticks) start))))))))))))
 
+;;; Call me to start the animation
 (defun run ()
   (sb-thread:make-thread #'%run))
