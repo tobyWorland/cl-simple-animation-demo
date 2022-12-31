@@ -25,12 +25,12 @@
   (set-render-draw-color renderer 0 0 0 255)
   (render-clear renderer)
 
-  (set-render-draw-color renderer 255 255 255 255)
-
   ;; Calculate new point positions and render them
+  (set-render-draw-color renderer 255 255 255 255)
   (setf *points* (mapcar (lambda (point)
-			   (prog1 (apply-velocity point +width+ +height+)
-			     (render-point renderer point)))
+			   (let ((new-point (apply-velocity point +width+ +height+)))
+			     (render-point renderer new-point)
+			     new-point))
 			 *points*))
 
   ;; Render the lines between the points
@@ -48,10 +48,10 @@
 (defun render-point-line (renderer point-1 point-2 alpha)
   "Draw a line between two points taking an ALPHA value to control transparency"
   (set-render-draw-color renderer 255 255 255 alpha)
-  (let ((x1 (+ 3 (point-x point-1)))
-	(y1 (+ 3 (point-y point-1)))
-	(x2 (+ 3 (point-x point-2)))
-	(y2 (+ 3 (point-y point-2))))
+  (let ((x1 (+ 2 (point-x point-1)))
+	(y1 (+ 2 (point-y point-1)))
+	(x2 (+ 2 (point-x point-2)))
+	(y2 (+ 2 (point-y point-2))))
     (render-draw-line renderer x1 y1 x2 y2)))
 
 (defun render-lines-mapping (renderer mapping threshold)
